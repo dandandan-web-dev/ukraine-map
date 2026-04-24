@@ -1,0 +1,61 @@
+---
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+}
+
+const { title, description, canonicalPath = '/' } = Astro.props;
+const canonical = new URL(canonicalPath, Astro.site).toString();
+const currentYear = new Date().getFullYear();
+const isHome = Astro.url.pathname === '/';
+const footerSpacingClass = isHome ? '' : 'mt-16';
+---
+
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Історико-культурні регіони України" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <ClientRouter />
+  </head>
+  <body class="selection:bg-yellow-300/40">
+    <header class="fixed left-0 right-0 top-0 z-40">
+      <div class="mx-auto flex h-[var(--header-h)] w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <a
+          href="/"
+          aria-label="Головна сторінка про історико-культурні регіони України"
+          class="inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] text-yellow-200 no-underline"
+        >
+          Історико-культурні регіони України
+        </a>
+      </div>
+    </header>
+    <main class="pt-[var(--header-h)]">
+      <slot />
+    </main>
+    <footer class={`border-t border-blue-900/70 ${footerSpacingClass} h-[var(--footer-h)]`}>
+      <div class="mx-auto flex h-full w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <p class="text-sm text-slate-400">© {currentYear} Історико-культурні регіони України. Усі права захищено.</p>
+      </div>
+    </footer>
+  </body>
+</html>

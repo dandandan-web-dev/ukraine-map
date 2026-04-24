@@ -1,0 +1,40 @@
+---
+import HeroMiniMap from '@/components/region/HeroMiniMap.astro';
+
+interface Props {
+  title: string;
+  intro: string;
+  eyebrow?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+  mapRegionId?: string;
+  mapRegionTitle?: string;
+}
+
+const { title, intro, eyebrow, ctaHref, ctaLabel, mapRegionId, mapRegionTitle } = Astro.props;
+---
+
+<section class="relative overflow-hidden rounded-3xl border border-blue-900/70 bg-slate-900/70 px-6 py-12 shadow-[0_18px_44px_rgba(2,8,18,0.55)] backdrop-blur sm:px-10 lg:px-12" transition:animate="fade">
+  <div class="absolute -right-28 -top-20 h-72 w-72 rounded-full bg-blue-600/20 blur-3xl" aria-hidden="true"></div>
+  <div class="absolute -left-28 bottom-0 h-64 w-64 rounded-full bg-yellow-300/18 blur-3xl" aria-hidden="true"></div>
+  <div class={`relative grid gap-8 ${mapRegionId ? 'lg:grid-cols-[minmax(0,1fr)_16.5rem] lg:items-center' : ''}`}>
+    <div class="max-w-3xl">
+      {eyebrow && (
+        <p class="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-200">{eyebrow}</p>
+      )}
+      <h1 class="text-balance text-3xl leading-tight sm:text-4xl lg:text-5xl">{title}</h1>
+      <p class="mt-4 text-lg text-slate-300">{intro}</p>
+      {ctaHref && ctaLabel && (
+        <a href={ctaHref} class="mt-8 inline-flex rounded-full bg-[#0057B7] px-5 py-2.5 text-sm font-semibold text-white no-underline transition hover:bg-blue-700">
+          {ctaLabel}
+        </a>
+      )}
+    </div>
+
+    {mapRegionId && (
+      <div class="mx-auto w-full max-w-[18rem] lg:mx-0 lg:ml-auto">
+        <HeroMiniMap regionId={mapRegionId} regionTitle={mapRegionTitle ?? title} />
+      </div>
+    )}
+  </div>
+</section>

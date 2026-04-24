@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 7 12 20;
+  --paper: 10 20 40;
+  --paper-2: 14 26 52;
+  --ink: 236 242 250;
+  --ink-soft: 156 172 190;
+  --line: 33 70 128;
+  --accent: 0 87 183;
+  --accent-soft: 255 221 0;
+  --header-h: 4.25rem;
+  --footer-h: 3.5rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply min-h-screen antialiased;
+  background:
+    radial-gradient(circle at 14% 9%, rgba(0, 87, 183, 0.2), transparent 36%),
+    radial-gradient(circle at 82% -8%, rgba(255, 221, 0, 0.12), transparent 30%),
+    radial-gradient(circle at 56% 110%, rgba(0, 87, 183, 0.16), transparent 33%),
+    rgb(var(--bg));
+  color: rgb(var(--ink));
+}
+
+main {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  @apply font-semibold tracking-tight text-blue-300;
+}
+
+p,
+li {
+  @apply leading-relaxed text-slate-300;
+}
+
+a {
+  @apply text-yellow-300 underline-offset-2 transition-colors;
+}
+
+a:hover {
+  @apply text-yellow-200;
+}
+
+.section-card {
+  @apply rounded-2xl border p-6 backdrop-blur;
+  border-color: rgb(var(--line) / 0.95);
+  background: linear-gradient(160deg, rgb(var(--paper) / 0.96), rgb(var(--paper-2) / 0.92));
+  box-shadow: 0 18px 44px rgba(4, 9, 16, 0.42);
+}
+
+.map-tooltip {
+  @apply pointer-events-none absolute z-20 w-[min(23rem,calc(100vw-2rem))] text-left;
+}
+
+.map-tooltip-card {
+  @apply rounded-2xl border px-4 py-3 backdrop-blur;
+  border-color: rgb(var(--line) / 0.95);
+  background: linear-gradient(160deg, rgb(var(--paper) / 0.97), rgb(var(--paper-2) / 0.94));
+  box-shadow: 0 14px 36px rgba(4, 9, 16, 0.48);
+}
+
+.map-tooltip-row {
+  @apply mt-2 flex items-start gap-2.5;
+}
+
+.map-tooltip.hidden,
+.map-tooltip-row.hidden {
+  display: none !important;
+}
+
+.map-tooltip-row-title {
+  @apply mt-0;
+}
+
+.map-tooltip-icon {
+  @apply mt-0.5 h-4 w-4 shrink-0;
+}
+
+.map-tooltip-title {
+  @apply text-sm font-semibold tracking-tight text-blue-300;
+}
+
+.map-tooltip-short {
+  @apply mt-1 text-xs text-slate-200;
+}
+
+.map-tooltip-summary {
+  @apply text-[11px] leading-relaxed text-slate-300;
+}
+
+.map-tooltip-meta {
+  @apply text-[10px] uppercase tracking-[0.14em] text-yellow-200/90;
+}
+
+.map-tooltip-status {
+  @apply text-[11px] text-amber-300/95;
+}

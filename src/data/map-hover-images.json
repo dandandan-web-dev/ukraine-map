@@ -1,0 +1,92 @@
+{
+	"bessarabiya": {
+		"img_src": "https://www.odesatourism.site/wp-content/uploads/2026/01/FRUMUSZYKA-NOWA-01.jpg",
+		"img_source": "https://www.odesatourism.site/",
+		"img_description": "Фрумушика-Нова. Джерело: Туристичний портал Одеси"
+	},
+	"prychornomorya": {
+		"img_src": "https://omore.city/upload/article/o_1fc2u44661rlr13841en91f6m1eb45i.jpg",
+		"img_source": "https://omore.city/",
+		"img_description": "Фонтантка. Джерело: портал О, Море"
+	},
+	"tavria": {
+		"img_src": "https://gdb.rferl.org/108ad8ff-2d8b-4e08-8b98-ca14be3fa237_w1023_s.jpg",
+		"img_source": "https://images.pexels.com/",
+		"img_description": "Спуск до Форосу. Крим. Джерело: Крим.Реалії"
+	},
+	"pryazovya": {
+		"img_src": "https://baza.zruchno.travel//upload/57ce0cc1-7a92-cba5-8096-60f431ff581b_news_mainimg",
+		"img_source": "https://picsum.photos/",
+		"img_description": "Тестове зображення для Приазов’я. Фото: Lorem Picsum (тимчасове джерело)."
+	},
+	"prydniprovya-i-zaporijjya": {
+		"img_src": "https://baza.zruchno.travel//upload/gallery_images/f00279e5-50e8-54be-88ce-5c6d3ec1f992/e481fce6-b217-7e95-f1a4-5c6e6e2df0d6.jpeg",
+		"img_source": "https://zruchno.travel/",
+		"img_description": "Острів Хортиця, Запоріжжя. Джерело: портал Zruchno.Travel"
+	},
+	"donechchyna": {
+		"img_src": "https://baza.zruchno.travel//upload/gallery_images/531aafbc-9822-fe77-551f-5fcb80271fe7/e7890349-2e4f-c8fa-a900-5fcb812d1ff3.jpeg",
+		"img_source": "https://zruchno.travel/",
+		"img_description": "Донецька область, місто Святогірськ. Джерело: портал Zruchno.Travel"
+	},
+	"slobojanshyna": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/37888/800x_188471.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Слобожанські краєвиди. Джерело: портал Photographers.ua (Фотограф: Максим Грицаненко)"
+	},
+	"poltavshyna": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/34076/800ximg_4152-1-2.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Тихий вечір на полях Полтавщини. Джерело: портал Photographers.ua (Фотограф: Ганна Козельська)"
+	},
+	"sivershyna": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/40183/800ximg_8639_rs_9.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "На закруті Сейму. Джерело: портал Photographers.ua (Фотограф: Капля Олександр)"
+	},
+	"naddnipryanshyna": {
+		"img_src": "https://www.ukrainer.net/wp-content/uploads/2019/10/naddniprianshchyna_red.jpg",
+		"img_source": "https://www.ukrainer.net",
+		"img_description": "Наддніпрянщина. Джерело: портал Ukraїner"
+	},
+	"podillia": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/41123/800ximg_0190-1.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Простори Поділля. Бакота. Джерело: портал Photographers.ua (Фотограф: Анатолій Рудченко)"
+	},
+	"bukovyna": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/2894/800x_na_gutsulschine.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Буковина. Джерело: портал Photographers.ua (Фотограф: Тат Мандри)"
+	},
+	"zakarpattia": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/45582/800xdsc_6687_1300px.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Вид з полонини Руна. Джерело: портал Photographers.ua (Фотограф: Orlang)"
+	},
+	"karpaty": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/80711/800x_os_ziyde_sonechko.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Карпати. Джерело: портал Photographers.ua (Фотограф: Володимир Циба)"
+	},
+	"halychyna": {
+		"img_src": "https://inlviv.in.ua/wp-content/uploads/2023/07/galych-galychyna-misto-zamok-fortetsya.jpg",
+		"img_source": "https://inlviv.in.ua/",
+		"img_description": "Сучасний вигляд Шляхетської веєі в Галичині. Джерело: портал То є Львів"
+	},
+	"volyn": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/10031/800ximg_5885_panorama.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Волинь сутінкова. Джерело: портал Photographers.ua (Фотограф: Taras Tsybukh)"
+	},
+	"polissia": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/34070/800xdsc06269_raf.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Полісся моє... Джерело: портал Photographers.ua (Фотограф: Farernik)"
+	},
+	"kyiv": {
+		"img_src": "https://photographers.ua/thumbnails/pictures/6099/800ximg_5808.jpg",
+		"img_source": "https://photographers.ua/",
+		"img_description": "Київ, Весняний ранок. Джерело: портал Photographers.ua (Фотограф: Іван Стеценко)"
+	}
+}

@@ -1,0 +1,181 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/layout/Hero.astro';
+import ContentSection from '@/components/region/ContentSection.astro';
+import SectionNav from '@/components/region/SectionNav.astro';
+import { ExternalLink, MapPin } from '@lucide/astro';
+import { getRegionBySlug, regions } from '@/lib/regions';
+
+export function getStaticPaths() {
+  return regions.map((region) => ({ params: { slug: region.slug } }));
+}
+
+const { slug } = Astro.params;
+const region = slug ? getRegionBySlug(slug) : undefined;
+
+if (!region) {
+  return Astro.redirect('/');
+}
+
+const navItems = [
+  { id: 'identity', label: 'Ідентичність' },
+  { id: 'history', label: 'Історія' },
+  { id: 'landscape', label: 'Ландшафт' },
+  { id: 'ecology', label: 'Екологія' },
+  { id: 'economy', label: 'Економіка' },
+  { id: 'people', label: 'Відомі постаті' },
+  { id: 'places', label: 'Місця' },
+  { id: 'sources', label: 'Джерела' }
+];
+
+const personReferenceUrl = (name: string, sourceUrl?: string) => {
+  if (sourceUrl) {
+    return sourceUrl;
+  }
+  return `https://uk.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(name)}`;
+};
+
+const placeMapUrl = (title: string) => {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${title}, Україна`)}`;
+};
+---
+
+<BaseLayout title={region.seo.title} description={region.seo.description} canonicalPath={`/regions/${region.slug}`}>
+  <div class="space-y-10 py-10">
+    <div transition:animate="initial">
+      <Hero
+        eyebrow="Профіль регіону"
+        title={region.title}
+        intro={region.hero.intro}
+        ctaHref="/#map"
+        ctaLabel="Назад до мапи"
+        mapRegionId={region.map.regionId}
+        mapRegionTitle={region.title}
+      />
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-[333px_1fr]">
+      <SectionNav items={navItems} />
+
+      <div class="space-y-6">
+        <ContentSection id="identity" title="Ідентичність">
+          <p>{region.identity.summary}</p>
+          <p class="text-sm text-slate-400">Пов’язані сучасні області: {region.identity.relatedModernOblasts.join(', ')}</p>
+          {region.identity.notes && region.identity.notes.length > 0 && (
+            <ul class="list-disc space-y-1 pl-5">
+              {region.identity.notes.map((note) => (
+                <li>{note}</li>
+              ))}
+            </ul>
+          )}
+        </ContentSection>
+
+        <ContentSection id="history" title="Історія">
+          <p>{region.history.summary}</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {region.history.highlights.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </ContentSection>
+
+        <ContentSection id="landscape" title="Ландшафт">
+          <p>{region.landscape.summary}</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {region.landscape.features.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </ContentSection>
+
+        <ContentSection id="ecology" title="Екологія">
+          <p>{region.ecology.summary}</p>
+          <h3 class="text-base font-semibold">Природоохоронні території</h3>
+          <ul class="list-disc space-y-1 pl-5">
+            {region.ecology.protectedAreas.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+          <h3 class="text-base font-semibold">Актуальні виклики</h3>
+          <ul class="list-disc space-y-1 pl-5">
+            {region.ecology.issues.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </ContentSection>
+
+        <ContentSection id="economy" title="Економіка">
+          <p>{region.economy.summary}</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {region.economy.sectors.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </ContentSection>
+
+        <ContentSection id="people" title="Відомі постаті">
+          <div class="grid gap-4 sm:grid-cols-2">
+            {region.famousPeople.map((person) => {
+              const href = personReferenceUrl(person.name, person.sourceUrl);
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  class="group block rounded-xl border border-slate-700 bg-slate-900/70 p-4 no-underline transition hover:border-blue-500/60 hover:bg-slate-900/90 hover:shadow-[0_14px_34px_rgba(2,8,18,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/80"
+                >
+                  <h3 class="flex items-center gap-2 font-semibold text-blue-300">
+                    <span>{person.name}</span>
+                    <ExternalLink size={15} class="text-blue-200 transition group-hover:text-yellow-200" aria-hidden="true" />
+                  </h3>
+                  <p class="text-sm text-yellow-200">{person.role}</p>
+                  <p class="mt-2 text-sm text-slate-300">{person.description}</p>
+                </a>
+              );
+            })}
+          </div>
+        </ContentSection>
+
+        <ContentSection id="places" title="Місця">
+          <div class="grid gap-4 sm:grid-cols-2">
+            {region.places.map((place) => (
+              <a
+                href={placeMapUrl(place.title)}
+                target="_blank"
+                rel="noreferrer"
+                class="group block rounded-xl border border-slate-700 bg-slate-900/70 p-4 no-underline transition hover:border-blue-500/60 hover:bg-slate-900/90 hover:shadow-[0_14px_34px_rgba(2,8,18,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/80"
+              >
+                <h3 class="flex items-center gap-2 font-semibold text-blue-300">
+                  <MapPin size={15} class="text-blue-200 transition group-hover:text-yellow-200" aria-hidden="true" />
+                  <span>{place.title}</span>
+                </h3>
+                <p class="mt-2 text-sm">{place.description}</p>
+              </a>
+            ))}
+          </div>
+        </ContentSection>
+
+        <ContentSection id="sources" title="Джерела">
+          <ul class="space-y-2">
+            {region.sources.map((source) => (
+              <li>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  class="group block rounded-lg border border-slate-700 bg-slate-900/70 p-3 no-underline transition hover:border-blue-500/60 hover:bg-slate-900/90 hover:shadow-[0_10px_28px_rgba(2,8,18,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/80"
+                >
+                  <p class="flex items-center gap-2 font-medium text-blue-300">
+                    <span>{source.title}</span>
+                    <ExternalLink size={15} class="text-blue-200 transition group-hover:text-yellow-200" aria-hidden="true" />
+                  </p>
+                  <p class="mt-1 text-xs uppercase tracking-[0.12em] text-slate-400">{source.type}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </ContentSection>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

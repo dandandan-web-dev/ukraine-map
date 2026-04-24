@@ -1,0 +1,694 @@
+---
+import { CircleAlert, MapPinned, ScrollText, Tags } from '@lucide/astro';
+import rawSvg from '@/assets/map/ukraine-map.svg?raw';
+import hoverImageConfig from '@/data/map-hover-images.json';
+import type { Region } from '@/lib/types';
+
+interface Props {
+  regions: Region[];
+}
+
+type HoverImageConfig = {
+  img_src: string;
+  img_source: string;
+  img_description: string;
+};
+
+const { regions } = Astro.props;
+const hoverImageByRegionId = hoverImageConfig as Record<string, HoverImageConfig>;
+
+const mapIndex = Object.fromEntries(
+  regions.map((region) => [
+    region.map.regionId,
+    {
+      slug: region.slug,
+      title: region.title,
+      shortDescription: region.shortDescription,
+      summary: region.identity.summary,
+      tags: region.hero.tags,
+      hoverImage: hoverImageByRegionId[region.map.regionId] ?? null
+    }
+  ])
+);
+---
+
+<section class="relative flex h-full items-center" aria-label="Інтерактивна мапа історико-культурних регіонів України">
+  <div id="region-tooltip" class="map-tooltip hidden" role="status" aria-live="polite" aria-hidden="true">
+    <div class="map-tooltip-card">
+      <div class="map-tooltip-row map-tooltip-row-title">
+        <MapPinned class="map-tooltip-icon text-blue-300" size={15} aria-hidden="true" />
+        <p id="region-tooltip-title" class="map-tooltip-title"></p>
+      </div>
+      <p id="region-tooltip-short" class="map-tooltip-short"></p>
+      <div class="map-tooltip-row">
+        <ScrollText class="map-tooltip-icon text-blue-200/85" size={15} aria-hidden="true" />
+        <p id="region-tooltip-summary" class="map-tooltip-summary"></p>
+      </div>
+      <div id="region-tooltip-tags-row" class="map-tooltip-row hidden">
+        <Tags class="map-tooltip-icon text-yellow-200/90" size={15} aria-hidden="true" />
+        <p id="region-tooltip-tags" class="map-tooltip-meta"></p>
+      </div>
+      <div id="region-tooltip-status-row" class="map-tooltip-row hidden">
+        <CircleAlert class="map-tooltip-icon text-amber-300/95" size={15} aria-hidden="true" />
+        <p id="region-tooltip-status" class="map-tooltip-status"></p>
+      </div>
+    </div>
+  </div>
+  <div id="region-hover-bg" class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div id="region-hover-bg-fallback" class="absolute inset-0"></div>
+    <div id="region-hover-bg-images" class="absolute inset-0">
+      <div id="region-hover-bg-image-a" class="region-hover-image-layer absolute inset-0"></div>
+      <div id="region-hover-bg-image-b" class="region-hover-image-layer absolute inset-0"></div>
+    </div>
+    <div id="region-hover-bg-shade" class="absolute inset-0"></div>
+    <div
+      id="region-hover-bg-meta"
+      class="absolute bottom-4 left-4 hidden max-w-[min(46ch,68vw)] rounded-lg border border-blue-300/25 bg-slate-950/55 px-3 py-2 text-xs text-slate-200 backdrop-blur"
+    >
+      <a id="region-hover-bg-source" href="#" target="_blank" rel="noreferrer" class="text-yellow-200 no-underline hover:text-yellow-100"
+        >Деталі зображення</a
+      >
+      <p id="region-hover-bg-description" class="mt-1 text-slate-300"></p>
+    </div>
+  </div>
+  <div
+    id="ukraine-map-root"
+    class="relative z-[1] mx-auto flex h-[92%] w-full items-center justify-center sm:h-[90%]"
+    data-map-index={JSON.stringify(mapIndex)}
+    data-hover-config={JSON.stringify(hoverImageByRegionId)}
+    set:html={rawSvg}
+  ></div>
+</section>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  type MapRegion = {
+    slug: string | null;
+    regionId: string;
+    title: string;
+    shortDescription: string;
+    summary: string;
+    tags?: string[];
+    hoverImage: HoverImageConfig | null;
+    hasPage: boolean;
+  };
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const MAX_TOOLTIP_SUMMARY_LENGTH = 168;
+  const TOOLTIP_VIEWPORT_PADDING = 14;
+  const TOOLTIP_OFFSET = 16;
+
+  type HoverImageConfig = {
+    img_src: string;
+    img_source: string;
+    img_description: string;
+  };
+
+  type MapRootElement = HTMLElement & {
+    __mapAbortController?: AbortController;
+  };
+
+  function toTitleFromId(regionId: string): string {
+    return regionId
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength - 1).trimEnd()}…`;
+  }
+
+  function buildFallbackRegion(regionId: string, hoverImage: HoverImageConfig | null): MapRegion {
+    return {
+      slug: null,
+      regionId,
+      title: toTitleFromId(regionId),
+      shortDescription: 'Профіль регіону незабаром буде додано.',
+      summary: 'Розгорнутий матеріал про цей регіон зʼявиться в наступній ітерації.',
+      tags: ['Незабаром'],
+      hoverImage,
+      hasPage: false
+    };
+  }
+
+  function initUkraineMap(): void {
+    const root = document.getElementById('ukraine-map-root') as MapRootElement | null;
+    const tooltip = document.getElementById('region-tooltip');
+    const tooltipTitle = document.getElementById('region-tooltip-title');
+    const tooltipShort = document.getElementById('region-tooltip-short');
+    const tooltipSummary = document.getElementById('region-tooltip-summary');
+    const tooltipTagsRow = document.getElementById('region-tooltip-tags-row');
+    const tooltipTags = document.getElementById('region-tooltip-tags');
+    const tooltipStatusRow = document.getElementById('region-tooltip-status-row');
+    const tooltipStatus = document.getElementById('region-tooltip-status');
+    const hoverBg = document.getElementById('region-hover-bg');
+    const hoverBgImageA = document.getElementById('region-hover-bg-image-a');
+    const hoverBgImageB = document.getElementById('region-hover-bg-image-b');
+    const hoverBgMeta = document.getElementById('region-hover-bg-meta');
+    const hoverBgSource = document.getElementById('region-hover-bg-source');
+    const hoverBgDescription = document.getElementById('region-hover-bg-description');
+
+    if (
+      !root ||
+      !tooltip ||
+      !tooltipTitle ||
+      !tooltipShort ||
+      !tooltipSummary ||
+      !tooltipTagsRow ||
+      !tooltipTags ||
+      !tooltipStatusRow ||
+      !tooltipStatus ||
+      !hoverBg ||
+      !hoverBgImageA ||
+      !hoverBgImageB ||
+      !hoverBgMeta ||
+      !hoverBgSource ||
+      !hoverBgDescription
+    ) {
+      return;
+    }
+
+    root.__mapAbortController?.abort();
+    const lifecycle = new AbortController();
+    root.__mapAbortController = lifecycle;
+
+    const hoverByRegionId = JSON.parse(root.dataset.hoverConfig || '{}') as Record<string, HoverImageConfig>;
+    const preloadedImages = new Map<string, HTMLImageElement>();
+    const imageLoadPromises = new Map<string, Promise<void>>();
+    let hideIntentTimer: number | null = null;
+    let clearImageLayersTimer: number | null = null;
+    let currentHoverToken = 0;
+    let activeImageSrc: string | null = null;
+    let visibleImageLayer: HTMLElement | null = null;
+    let activeRegionId: string | null = null;
+    let touchPreviewRegionId: string | null = null;
+    let lastPointerWasTouch = false;
+
+    const cancelHideIntent = (): void => {
+      if (hideIntentTimer !== null) {
+        window.clearTimeout(hideIntentTimer);
+        hideIntentTimer = null;
+      }
+    };
+
+    const setActive = (regionId: string | null): void => {
+      if (activeRegionId) {
+        const current = root.querySelector<SVGPathElement>(`path.map-region-visual[id="${activeRegionId}"]`);
+        current?.classList.remove('map-path-active');
+      }
+      activeRegionId = regionId;
+      if (activeRegionId) {
+        const next = root.querySelector<SVGPathElement>(`path.map-region-visual[id="${activeRegionId}"]`);
+        next?.classList.add('map-path-active');
+      }
+    };
+
+    const swapImageLayer = (nextSrc: string): void => {
+      if (activeImageSrc === nextSrc && visibleImageLayer) {
+        return;
+      }
+
+      if (clearImageLayersTimer !== null) {
+        window.clearTimeout(clearImageLayersTimer);
+        clearImageLayersTimer = null;
+      }
+
+      const incomingLayer = visibleImageLayer === hoverBgImageA ? hoverBgImageB : hoverBgImageA;
+      incomingLayer.style.backgroundImage = `url("${nextSrc}")`;
+      incomingLayer.classList.add('is-visible');
+
+      if (visibleImageLayer) {
+        visibleImageLayer.classList.remove('is-visible');
+      }
+
+      visibleImageLayer = incomingLayer;
+      activeImageSrc = nextSrc;
+    };
+
+    const clearVisibleImageLayer = (): void => {
+      if (visibleImageLayer) {
+        visibleImageLayer.classList.remove('is-visible');
+      }
+      visibleImageLayer = null;
+      activeImageSrc = null;
+
+      if (clearImageLayersTimer !== null) {
+        window.clearTimeout(clearImageLayersTimer);
+      }
+      clearImageLayersTimer = window.setTimeout(() => {
+        if (!visibleImageLayer) {
+          hoverBgImageA.style.backgroundImage = '';
+          hoverBgImageB.style.backgroundImage = '';
+        }
+        clearImageLayersTimer = null;
+      }, 460);
+    };
+
+    const ensureImageLoaded = (src: string): Promise<void> => {
+      const pending = imageLoadPromises.get(src);
+      if (pending) {
+        return pending;
+      }
+
+      let img = preloadedImages.get(src);
+      if (!img) {
+        img = new Image();
+        img.decoding = 'async';
+        img.src = src;
+        preloadedImages.set(src, img);
+      }
+
+      if (img.complete) {
+        return Promise.resolve();
+      }
+
+      const promise = new Promise<void>((resolve) => {
+        const done = (): void => resolve();
+        img?.addEventListener('load', done, { once: true });
+        img?.addEventListener('error', done, { once: true });
+      }).finally(() => {
+        imageLoadPromises.delete(src);
+      });
+
+      imageLoadPromises.set(src, promise);
+      return promise;
+    };
+
+    const preloadHoverImages = (): void => {
+      const uniqueSources = new Set(
+        Object.values(hoverByRegionId)
+          .map((item) => item?.img_src)
+          .filter((src): src is string => Boolean(src))
+      );
+
+      for (const src of uniqueSources) {
+        void ensureImageLoaded(src);
+      }
+    };
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback) => number;
+    };
+    if (idleWindow.requestIdleCallback) {
+      idleWindow.requestIdleCallback(() => preloadHoverImages());
+    } else {
+      preloadHoverImages();
+    }
+
+    const mapFromData = JSON.parse(root.dataset.mapIndex || '{}') as Record<
+      string,
+      Omit<MapRegion, 'hasPage' | 'regionId'> & { slug: string; hoverImage: HoverImageConfig | null }
+    >;
+    const map: Record<string, MapRegion> = Object.fromEntries(
+      Object.entries(mapFromData).map(([regionId, region]) => [
+        regionId,
+        { ...region, regionId, hoverImage: region.hoverImage ?? hoverByRegionId[regionId] ?? null, hasPage: true }
+      ])
+    );
+
+    const svg = root.querySelector<SVGSVGElement>('svg');
+    if (!svg) {
+      return;
+    }
+
+    const existingHitLayer = svg.querySelector('#map-hit-layer');
+    if (existingHitLayer) {
+      existingHitLayer.remove();
+    }
+
+    if (!svg.querySelector('#ua-flag-gradient')) {
+      const defs = document.createElementNS(SVG_NS, 'defs');
+      defs.innerHTML = `
+        <linearGradient id="ua-flag-gradient" x1="-20%" y1="10%" x2="120%" y2="90%">
+          <stop offset="0%" stop-color="#1d4ed8" />
+          <stop offset="32%" stop-color="#60a5fa" />
+          <stop offset="50%" stop-color="#e2e8f0" stop-opacity="0.92" />
+          <stop offset="68%" stop-color="#fde047" />
+          <stop offset="100%" stop-color="#f59e0b" />
+          <animateTransform attributeName="gradientTransform" type="rotate" values="-10 0.5 0.5;10 0.5 0.5;-10 0.5 0.5" dur="4.2s" repeatCount="indefinite" />
+          <animate attributeName="x1" values="-20%;-2%;-20%" dur="3.4s" repeatCount="indefinite" />
+          <animate attributeName="x2" values="120%;102%;120%" dur="3.4s" repeatCount="indefinite" />
+        </linearGradient>
+        <filter id="ua-glow-filter" x="-60%" y="-60%" width="220%" height="220%">
+          <feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#38bdf8" flood-opacity="0.84" />
+          <feDropShadow dx="0" dy="0" stdDeviation="3.8" flood-color="#facc15" flood-opacity="0.62" />
+        </filter>
+      `;
+      svg.insertBefore(defs, svg.firstChild);
+    }
+
+    const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+
+    const updateTooltipContent = (region: MapRegion): void => {
+      tooltipTitle.textContent = region.title;
+      tooltipShort.textContent = region.shortDescription;
+      tooltipSummary.textContent = truncateText(region.summary, MAX_TOOLTIP_SUMMARY_LENGTH);
+
+      if (region.tags?.length) {
+        tooltipTags.textContent = region.tags.slice(0, 3).join(' • ');
+        tooltipTagsRow.classList.remove('hidden');
+      } else {
+        tooltipTags.textContent = '';
+        tooltipTagsRow.classList.add('hidden');
+      }
+
+      if (region.hasPage) {
+        tooltipStatus.textContent = '';
+        tooltipStatusRow.classList.add('hidden');
+      } else {
+        tooltipStatus.textContent = 'Сторінка ще не додана';
+        tooltipStatusRow.classList.remove('hidden');
+      }
+    };
+
+    const positionTooltip = (clientX: number, clientY: number): void => {
+      const rootRect = root.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const minLeft = TOOLTIP_VIEWPORT_PADDING;
+      const minTop = TOOLTIP_VIEWPORT_PADDING;
+      const maxLeft = Math.max(TOOLTIP_VIEWPORT_PADDING, rootRect.width - tooltipRect.width - TOOLTIP_VIEWPORT_PADDING);
+      const maxTop = Math.max(TOOLTIP_VIEWPORT_PADDING, rootRect.height - tooltipRect.height - TOOLTIP_VIEWPORT_PADDING);
+      const left = clamp(clientX - rootRect.left + TOOLTIP_OFFSET, minLeft, maxLeft);
+      const top = clamp(clientY - rootRect.top + TOOLTIP_OFFSET, minTop, maxTop);
+
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+    };
+
+    const updateHoverBackground = (region: MapRegion): void => {
+      if (region.hoverImage) {
+        hoverBgMeta.classList.remove('hidden');
+        hoverBgSource.setAttribute('href', region.hoverImage.img_source);
+        hoverBgDescription.textContent = region.hoverImage.img_description;
+        const nextImageSrc = region.hoverImage.img_src;
+        const requestToken = ++currentHoverToken;
+
+        const activateLoadedImage = (): void => {
+          if (requestToken !== currentHoverToken) {
+            return;
+          }
+          hoverBg.classList.remove('is-loading');
+          hoverBg.classList.add('is-active');
+          swapImageLayer(nextImageSrc);
+        };
+
+        if (activeImageSrc === nextImageSrc) {
+          activateLoadedImage();
+        } else {
+          hoverBg.classList.add('is-loading');
+          void ensureImageLoaded(nextImageSrc).then(() => {
+            activateLoadedImage();
+          });
+        }
+      } else {
+        currentHoverToken += 1;
+        hoverBg.classList.remove('is-loading');
+        hoverBg.classList.remove('is-active');
+        hoverBgMeta.classList.add('hidden');
+        clearVisibleImageLayer();
+      }
+    };
+
+    const showTooltip = (region: MapRegion, clientX: number, clientY: number): void => {
+      cancelHideIntent();
+      setActive(region.regionId);
+      updateHoverBackground(region);
+      updateTooltipContent(region);
+      tooltip.classList.remove('hidden');
+      tooltip.setAttribute('aria-hidden', 'false');
+      positionTooltip(clientX, clientY);
+    };
+
+    const hideTooltipNow = (clearTouchPreview: boolean): void => {
+      cancelHideIntent();
+      currentHoverToken += 1;
+      hoverBg.classList.remove('is-loading');
+      tooltip.classList.add('hidden');
+      tooltip.setAttribute('aria-hidden', 'true');
+      hoverBg.classList.remove('is-active');
+      clearVisibleImageLayer();
+      hoverBgMeta.classList.add('hidden');
+      setActive(null);
+      if (clearTouchPreview) {
+        touchPreviewRegionId = null;
+      }
+    };
+
+    const hideTooltip = (clearTouchPreview: boolean): void => {
+      cancelHideIntent();
+      hideIntentTimer = window.setTimeout(() => {
+        hideIntentTimer = null;
+        hideTooltipNow(clearTouchPreview);
+      }, 100);
+    };
+
+    const visualPaths = Array.from(svg.querySelectorAll<SVGPathElement>('path[id]'));
+    const hitLayer = document.createElementNS(SVG_NS, 'g');
+    hitLayer.setAttribute('id', 'map-hit-layer');
+    svg.appendChild(hitLayer);
+
+    for (const visualPath of visualPaths) {
+      const regionId = visualPath.id;
+      const region = map[regionId] ?? buildFallbackRegion(regionId, hoverByRegionId[regionId] ?? null);
+      const tooltipText = `${region.title} — ${region.shortDescription}`;
+
+      visualPath.classList.add('map-region-visual');
+      visualPath.style.removeProperty('fill');
+      visualPath.setAttribute('fill', 'none');
+
+      const hitPath = visualPath.cloneNode(false) as SVGPathElement;
+      hitPath.id = `hit-${regionId}`;
+      hitPath.removeAttribute('style');
+      hitPath.removeAttribute('class');
+      hitPath.classList.add('map-region-hit');
+      hitPath.setAttribute('role', 'link');
+      hitPath.setAttribute('tabindex', '0');
+      hitPath.setAttribute('aria-disabled', String(!region.hasPage));
+      hitPath.setAttribute('aria-label', tooltipText);
+      hitPath.setAttribute('fill', 'rgba(59, 130, 246, 0.001)');
+      hitPath.setAttribute('stroke', 'transparent');
+
+      const d = hitPath.getAttribute('d');
+      if (d && !/[zZ]\s*$/.test(d.trim())) {
+        hitPath.setAttribute('d', `${d} Z`);
+      }
+
+      hitLayer.appendChild(hitPath);
+
+      const showFromPointer = (event: MouseEvent): void => {
+        if (touchPreviewRegionId) {
+          return;
+        }
+        showTooltip(region, event.clientX, event.clientY);
+      };
+
+      const showFromFocus = (): void => {
+        const sourceRect = hitPath.getBoundingClientRect();
+        const centerX = sourceRect.left + sourceRect.width / 2;
+        const centerY = sourceRect.top + Math.min(sourceRect.height * 0.45, 30);
+        showTooltip(region, centerX, centerY);
+      };
+
+      hitPath.addEventListener('mouseenter', showFromPointer, { signal: lifecycle.signal });
+      hitPath.addEventListener('mousemove', showFromPointer, { signal: lifecycle.signal });
+      hitPath.addEventListener(
+        'mouseleave',
+        () => {
+          if (!touchPreviewRegionId) {
+            hideTooltip(false);
+          }
+        },
+        { signal: lifecycle.signal }
+      );
+      hitPath.addEventListener('focus', showFromFocus, { signal: lifecycle.signal });
+      hitPath.addEventListener(
+        'blur',
+        () => {
+          if (!touchPreviewRegionId) {
+            hideTooltip(true);
+          }
+        },
+        { signal: lifecycle.signal }
+      );
+      hitPath.addEventListener(
+        'pointerdown',
+        (event: PointerEvent) => {
+          lastPointerWasTouch = event.pointerType === 'touch';
+        },
+        { signal: lifecycle.signal }
+      );
+      hitPath.addEventListener(
+        'click',
+        (event: MouseEvent) => {
+          const triggeredByTouch = lastPointerWasTouch;
+          lastPointerWasTouch = false;
+
+          if (triggeredByTouch) {
+            const sourceRect = hitPath.getBoundingClientRect();
+            const touchX = event.clientX || sourceRect.left + sourceRect.width / 2;
+            const touchY = event.clientY || sourceRect.top + Math.min(sourceRect.height * 0.45, 30);
+
+            if (touchPreviewRegionId !== regionId) {
+              event.preventDefault();
+              touchPreviewRegionId = regionId;
+              showTooltip(region, touchX, touchY);
+              return;
+            }
+
+            touchPreviewRegionId = null;
+            if (region.hasPage && region.slug) {
+              navigate(`/regions/${region.slug}`);
+              return;
+            }
+            event.preventDefault();
+            return;
+          }
+
+          if (region.hasPage && region.slug) {
+            navigate(`/regions/${region.slug}`);
+            return;
+          }
+          event.preventDefault();
+        },
+        { signal: lifecycle.signal }
+      );
+
+      if (region.hasPage && region.slug) {
+        hitPath.addEventListener(
+          'keydown',
+          (event: KeyboardEvent) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              navigate(`/regions/${region.slug}`);
+            }
+          },
+          { signal: lifecycle.signal }
+        );
+      }
+    }
+
+    document.addEventListener(
+      'pointerdown',
+      (event: PointerEvent) => {
+        if (event.pointerType !== 'touch') {
+          return;
+        }
+        const target = event.target;
+        if (!(target instanceof Element)) {
+          hideTooltipNow(true);
+          return;
+        }
+        if (target.closest('#map-hit-layer')) {
+          return;
+        }
+        hideTooltipNow(true);
+      },
+      { signal: lifecycle.signal }
+    );
+  }
+
+  document.addEventListener('astro:page-load', initUkraineMap);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUkraineMap, { once: true });
+  } else {
+    initUkraineMap();
+  }
+</script>
+
+<style>
+  #ukraine-map-root {
+    position: relative;
+    overflow: hidden;
+  }
+
+  #ukraine-map-root :global(svg) {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  #ukraine-map-root :global(path.map-region-visual) {
+    fill: none !important;
+    stroke: rgb(59 130 246 / 0.98);
+    stroke-width: 1.75px;
+    vector-effect: non-scaling-stroke;
+    transition: fill 220ms ease, fill-opacity 220ms ease, stroke 220ms ease, filter 260ms ease;
+  }
+
+  #ukraine-map-root :global(path.map-region-hit) {
+    cursor: pointer;
+    pointer-events: all;
+    fill: rgb(59 130 246 / 0.001);
+    stroke: transparent;
+    stroke-width: 14;
+    outline: none;
+  }
+
+  #ukraine-map-root :global(path.map-region-visual.map-path-active) {
+    fill: url(#ua-flag-gradient) !important;
+    fill-opacity: 0.72;
+    stroke: rgb(219 234 254);
+    filter: url(#ua-glow-filter) drop-shadow(0 0 14px rgba(56, 189, 248, 0.28));
+    outline: none;
+  }
+
+  #ukraine-map-root :global(path.map-region-hit[aria-disabled='true']) {
+    cursor: default;
+  }
+
+  #region-hover-bg-images {
+    position: absolute;
+    inset: 0;
+  }
+
+  .region-hover-image-layer {
+    opacity: 0;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.48) saturate(1.02) contrast(1.02);
+    transform: scale(1.06);
+    transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 560ms ease;
+    will-change: opacity, transform;
+  }
+
+  .region-hover-image-layer.is-visible {
+    opacity: 0.86;
+    filter: brightness(0.48) saturate(1.02) contrast(1.02);
+    transform: scale(1);
+  }
+
+  #region-hover-bg-shade {
+    opacity: 0;
+    background:
+      radial-gradient(circle at 18% 18%, rgb(0 87 183 / 0.3), transparent 42%),
+      radial-gradient(circle at 80% 80%, rgb(255 221 0 / 0.34), transparent 40%),
+      linear-gradient(180deg, rgb(0 87 183 / 0.22), rgb(255 221 0 / 0.22));
+    transition: opacity 260ms ease;
+  }
+
+  #region-hover-bg-fallback {
+    opacity: 0;
+    background:
+      radial-gradient(circle at 18% 18%, rgb(0 87 183 / 0.32), transparent 42%),
+      radial-gradient(circle at 80% 84%, rgb(255 221 0 / 0.24), transparent 40%),
+      linear-gradient(160deg, rgb(2 12 32 / 0.96), rgb(6 18 44 / 0.96));
+    transition: opacity 320ms ease;
+  }
+
+  #region-hover-bg.is-active #region-hover-bg-shade {
+    opacity: 0.66;
+  }
+
+  #region-hover-bg.is-loading #region-hover-bg-shade {
+    opacity: 0.46;
+  }
+
+  #region-hover-bg.is-loading #region-hover-bg-fallback {
+    opacity: 0.22;
+  }
+</style>

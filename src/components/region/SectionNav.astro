@@ -1,0 +1,27 @@
+---
+interface Item {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<aside class="hidden lg:block">
+  <nav aria-label="Розділи сторінки регіону" class="sticky top-24 rounded-2xl border border-slate-700 bg-slate-900/90 p-4 shadow-sm backdrop-blur">
+    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">На цій сторінці</p>
+    <ul class="space-y-1">
+      {items.map((item) => (
+        <li>
+          <a href={`#${item.id}`} class="block rounded-md px-2 py-1.5 text-sm text-slate-300 no-underline hover:bg-slate-800 hover:text-slate-100">
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</aside>

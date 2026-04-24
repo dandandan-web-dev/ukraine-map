@@ -1,0 +1,18 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import UkraineMap from '@/components/map/UkraineMap.astro';
+import { regions } from '@/lib/regions';
+---
+
+<BaseLayout
+  title="Історико-культурні регіони України"
+  description="Досліджуйте історико-культурні регіони України через інтерактивну мапу та розгорнуті сторінки регіонів."
+  canonicalPath="/"
+>
+  <div class="relative left-1/2 right-1/2 h-[calc(100dvh-var(--header-h)-var(--footer-h))] w-screen -ml-[50vw] -mr-[50vw] overflow-hidden">
+    <h1 class="sr-only">Історико-культурні регіони України</h1>
+    <div id="map" class="h-full" transition:animate="fade">
+      <UkraineMap regions={regions} />
+    </div>
+  </div>
+</BaseLayout>

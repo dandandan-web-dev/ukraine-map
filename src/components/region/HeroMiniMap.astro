@@ -1,0 +1,59 @@
+---
+import rawSvg from '@/assets/map/ukraine-map.svg?raw';
+
+interface Props {
+  regionId: string;
+  regionTitle: string;
+}
+
+const { regionId, regionTitle } = Astro.props;
+
+const svgWithHighlightedRegion = rawSvg.replace(
+  /<path\b([^>]*\bid="([^"]+)"[^>]*)>/gi,
+  (_fullMatch: string, attributes: string, id: string) => {
+    const className = id === regionId ? 'hero-mini-path is-active' : 'hero-mini-path';
+
+    if (/\bclass="/i.test(attributes)) {
+      const updatedAttributes = attributes.replace(/\bclass="([^"]*)"/i, (_classMatch: string, existingClasses: string) => {
+        return `class="${existingClasses} ${className}"`;
+      });
+      return `<path${updatedAttributes}>`;
+    }
+
+    return `<path${attributes} class="${className}">`;
+  }
+);
+---
+
+<div class="hero-mini-map" role="img" aria-label={`Мапа України з виділеним регіоном: ${regionTitle}`} set:html={svgWithHighlightedRegion}></div>
+
+<style>
+  .hero-mini-map {
+    border: 1px solid rgb(59 130 246 / 0.25);
+    border-radius: 1rem;
+    background: linear-gradient(170deg, rgb(2 12 32 / 0.5), rgb(6 18 44 / 0.36));
+    padding: 0.75rem;
+    box-shadow: 0 14px 36px rgba(2, 8, 18, 0.35);
+    backdrop-filter: blur(4px);
+  }
+
+  .hero-mini-map :global(svg) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .hero-mini-map :global(path.hero-mini-path) {
+    fill: none !important;
+    stroke: rgb(96 165 250 / 0.72) !important;
+    stroke-width: 1.5px;
+    vector-effect: non-scaling-stroke;
+    transition: fill 240ms ease, stroke 240ms ease, filter 260ms ease;
+  }
+
+  .hero-mini-map :global(path.hero-mini-path.is-active) {
+    fill: rgb(56 189 248 / 0.25) !important;
+    stroke: rgb(253 224 71 / 0.95) !important;
+    filter: drop-shadow(0 0 9px rgba(250, 204, 21, 0.35));
+  }
+</style>
