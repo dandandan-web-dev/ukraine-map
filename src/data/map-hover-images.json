@@ -7,12 +7,12 @@
 	"prychornomorya": {
 		"img_src": "https://omore.city/upload/article/o_1fc2u44661rlr13841en91f6m1eb45i.jpg",
 		"img_source": "https://omore.city/",
-		"img_description": "Фонтантка. Джерело: портал О, Море"
+		"img_description": "Фонтанка на узбережжі Одещини. Джерело: портал О, Море"
 	},
 	"tavria": {
 		"img_src": "https://gdb.rferl.org/108ad8ff-2d8b-4e08-8b98-ca14be3fa237_w1023_s.jpg",
-		"img_source": "https://images.pexels.com/",
-		"img_description": "Спуск до Форосу. Крим. Джерело: Крим.Реалії"
+		"img_source": "https://www.radiosvoboda.org/a/photo/29253443.html",
+		"img_description": "Спуск до Форосу в Криму. Джерело: Крим.Реалії / Радіо Свобода"
 	},
 	"pryazovya": {
 		"img_src": "https://baza.zruchno.travel//upload/57ce0cc1-7a92-cba5-8096-60f431ff581b_news_mainimg",
@@ -32,7 +32,7 @@
 	"slobojanshyna": {
 		"img_src": "https://photographers.ua/thumbnails/pictures/37888/800x_188471.jpg",
 		"img_source": "https://photographers.ua/",
-		"img_description": "Слобожанські краєвиди. Джерело: портал Photographers.ua (Фотограф: Максим Грицаненко)"
+		"img_description": "Слобожанські краєвиди. Джерело: Photographers.ua, Максим Грицаненко"
 	},
 	"poltavshyna": {
 		"img_src": "https://photographers.ua/thumbnails/pictures/34076/800ximg_4152-1-2.jpg",
@@ -47,7 +47,7 @@
 	"naddnipryanshyna": {
 		"img_src": "https://www.ukrainer.net/wp-content/uploads/2019/10/naddniprianshchyna_red.jpg",
 		"img_source": "https://www.ukrainer.net",
-		"img_description": "Наддніпрянщина. Джерело: портал Ukraїner"
+		"img_description": "Наддніпрянщина. Джерело: Ukraїner"
 	},
 	"podillia": {
 		"img_src": "https://photographers.ua/thumbnails/pictures/41123/800ximg_0190-1.jpg",
@@ -72,7 +72,7 @@
 	"halychyna": {
 		"img_src": "https://inlviv.in.ua/wp-content/uploads/2023/07/galych-galychyna-misto-zamok-fortetsya.jpg",
 		"img_source": "https://inlviv.in.ua/",
-		"img_description": "Сучасний вигляд Шляхетської веєі в Галичині. Джерело: портал То є Львів"
+		"img_description": "Шляхетська вежа у Галичині. Джерело: То є Львів"
 	},
 	"volyn": {
 		"img_src": "https://photographers.ua/thumbnails/pictures/10031/800ximg_5885_panorama.jpg",
@@ -87,6 +87,6 @@
 	"kyiv": {
 		"img_src": "https://photographers.ua/thumbnails/pictures/6099/800ximg_5808.jpg",
 		"img_source": "https://photographers.ua/",
-		"img_description": "Київ, Весняний ранок. Джерело: портал Photographers.ua (Фотограф: Іван Стеценко)"
+		"img_description": "Київ, весняний ранок. Джерело: Photographers.ua, Іван Стеценко"
 	}
 }
