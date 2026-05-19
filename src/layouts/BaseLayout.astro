@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
+import { getCanonicalUrl, siteBasePath } from '@/lib/site-paths';
 
 interface Props {
   title: string;
@@ -9,9 +10,9 @@ interface Props {
 }
 
 const { title, description, canonicalPath = '/' } = Astro.props;
-const canonical = new URL(canonicalPath, Astro.site).toString();
+const canonical = getCanonicalUrl(canonicalPath, Astro.site);
 const currentYear = new Date().getFullYear();
-const isHome = Astro.url.pathname === '/';
+const isHome = canonicalPath === '/';
 const footerSpacingClass = isHome ? '' : 'mt-16';
 ---
 
@@ -41,7 +42,7 @@ const footerSpacingClass = isHome ? '' : 'mt-16';
     <header class="fixed left-0 right-0 top-0 z-40">
       <div class="mx-auto flex h-[var(--header-h)] w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         <a
-          href="/"
+          href={siteBasePath}
           aria-label="Головна сторінка про історико-культурні регіони України"
           class="inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] text-yellow-200 no-underline"
         >

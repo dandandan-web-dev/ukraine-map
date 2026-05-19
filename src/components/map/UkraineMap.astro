@@ -3,6 +3,7 @@ import { CircleAlert, MapPinned, ScrollText, Tags } from '@lucide/astro';
 import rawSvg from '@/assets/map/ukraine-map.svg?raw';
 import hoverImageConfig from '@/data/map-hover-images.json';
 import { regionTitleByMapId } from '@/lib/region-titles';
+import { siteBasePath } from '@/lib/site-paths';
 import type { Region } from '@/lib/types';
 
 interface Props {
@@ -78,6 +79,7 @@ const mapIndex = Object.fromEntries(
     data-map-index={JSON.stringify(mapIndex)}
     data-hover-config={JSON.stringify(hoverImageByRegionId)}
     data-region-titles={JSON.stringify(regionTitleByMapId)}
+    data-base-path={siteBasePath}
     set:html={rawSvg}
   ></div>
 </section>
@@ -174,6 +176,7 @@ const mapIndex = Object.fromEntries(
 
     const hoverByRegionId = JSON.parse(root.dataset.hoverConfig || '{}') as Record<string, HoverImageConfig>;
     const titleByRegionId = JSON.parse(root.dataset.regionTitles || '{}') as Record<string, string>;
+    const basePath = root.dataset.basePath || '/';
     const preloadedImages = new Map<string, HTMLImageElement>();
     const imageLoadPromises = new Map<string, Promise<void>>();
     let hideIntentTimer: number | null = null;
@@ -539,7 +542,7 @@ const mapIndex = Object.fromEntries(
 
             touchPreviewRegionId = null;
             if (region.hasPage && region.slug) {
-              navigate(`/regions/${region.slug}`);
+              navigate(`${basePath}regions/${region.slug}`);
               return;
             }
             event.preventDefault();
@@ -547,7 +550,7 @@ const mapIndex = Object.fromEntries(
           }
 
           if (region.hasPage && region.slug) {
-            navigate(`/regions/${region.slug}`);
+            navigate(`${basePath}regions/${region.slug}`);
             return;
           }
           event.preventDefault();
@@ -561,7 +564,7 @@ const mapIndex = Object.fromEntries(
           (event: KeyboardEvent) => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              navigate(`/regions/${region.slug}`);
+              navigate(`${basePath}regions/${region.slug}`);
             }
           },
           { signal: lifecycle.signal }
