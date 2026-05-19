@@ -5,6 +5,7 @@ import ContentSection from '@/components/region/ContentSection.astro';
 import SectionNav from '@/components/region/SectionNav.astro';
 import { ExternalLink, MapPin } from '@lucide/astro';
 import { getRegionBySlug, regions } from '@/lib/regions';
+import { withBasePath } from '@/lib/site-paths';
 
 export function getStaticPaths() {
   return regions.map((region) => ({ params: { slug: region.slug } }));
@@ -38,6 +39,8 @@ const personReferenceUrl = (name: string, sourceUrl?: string) => {
 const placeMapUrl = (title: string) => {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${title}, Україна`)}`;
 };
+
+const mapHref = withBasePath('#map');
 ---
 
 <BaseLayout title={region.seo.title} description={region.seo.description} canonicalPath={`/regions/${region.slug}`}>
@@ -47,7 +50,7 @@ const placeMapUrl = (title: string) => {
         eyebrow="Профіль регіону"
         title={region.title}
         intro={region.hero.intro}
-        ctaHref="/#map"
+        ctaHref={mapHref}
         ctaLabel="Назад до мапи"
         mapRegionId={region.map.regionId}
         mapRegionTitle={region.title}
