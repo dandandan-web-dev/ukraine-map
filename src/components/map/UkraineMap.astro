@@ -286,7 +286,7 @@ const mapIndex = Object.fromEntries(
       );
 
       for (const src of uniqueSources) {
-        void ensureImageLoaded(src);
+        ensureImageLoaded(src);
       }
     };
 
@@ -400,7 +400,7 @@ const mapIndex = Object.fromEntries(
           activateLoadedImage();
         } else {
           hoverBg.classList.add('is-loading');
-          void ensureImageLoaded(nextImageSrc).then(() => {
+          ensureImageLoaded(nextImageSrc).then(() => {
             activateLoadedImage();
           });
         }
@@ -542,7 +542,7 @@ const mapIndex = Object.fromEntries(
 
             touchPreviewRegionId = null;
             if (region.hasPage && region.slug) {
-              navigate(`${basePath}regions/${region.slug}`);
+              navigate(`${basePath}/regions/${region.slug}`);
               return;
             }
             event.preventDefault();
@@ -550,7 +550,7 @@ const mapIndex = Object.fromEntries(
           }
 
           if (region.hasPage && region.slug) {
-            navigate(`${basePath}regions/${region.slug}`);
+            navigate(`${basePath}/regions/${region.slug}`);
             return;
           }
           event.preventDefault();
@@ -564,7 +564,7 @@ const mapIndex = Object.fromEntries(
           (event: KeyboardEvent) => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              navigate(`${basePath}regions/${region.slug}`);
+              navigate(`${basePath}/regions/${region.slug}`);
             }
           },
           { signal: lifecycle.signal }
