@@ -1,4 +1,5 @@
 ---
+import { getRegionTitleByMapId } from '@/lib/region-titles';
 import type { Region } from '@/lib/types';
 
 interface Props {
@@ -6,11 +7,12 @@ interface Props {
 }
 
 const { region } = Astro.props;
+const regionTitle = region.title || getRegionTitleByMapId(region.map.regionId);
 ---
 
 <article class="rounded-2xl border border-slate-700 bg-slate-900/75 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(2,8,18,0.45)]">
   <h3 class="text-lg font-semibold text-blue-300">
-    <a class="no-underline" href={`/regions/${region.slug}`}>{region.title}</a>
+    <a class="no-underline" href={`/regions/${region.slug}`}>{regionTitle}</a>
   </h3>
   <p class="mt-2 text-sm text-slate-300">{region.shortDescription}</p>
   <div class="mt-4 flex flex-wrap gap-2">

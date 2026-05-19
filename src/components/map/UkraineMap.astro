@@ -2,6 +2,7 @@
 import { CircleAlert, MapPinned, ScrollText, Tags } from '@lucide/astro';
 import rawSvg from '@/assets/map/ukraine-map.svg?raw';
 import hoverImageConfig from '@/data/map-hover-images.json';
+import { regionTitleByMapId } from '@/lib/region-titles';
 import type { Region } from '@/lib/types';
 
 interface Props {
@@ -76,6 +77,7 @@ const mapIndex = Object.fromEntries(
     class="relative z-[1] mx-auto flex h-[92%] w-full items-center justify-center sm:h-[90%]"
     data-map-index={JSON.stringify(mapIndex)}
     data-hover-config={JSON.stringify(hoverImageByRegionId)}
+    data-region-titles={JSON.stringify(regionTitleByMapId)}
     set:html={rawSvg}
   ></div>
 </section>
@@ -109,12 +111,6 @@ const mapIndex = Object.fromEntries(
     __mapAbortController?: AbortController;
   };
 
-  function toTitleFromId(regionId: string): string {
-    return regionId
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  }
-
   function truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) {
       return text;
@@ -122,11 +118,11 @@ const mapIndex = Object.fromEntries(
     return `${text.slice(0, maxLength - 1).trimEnd()}…`;
   }
 
-  function buildFallbackRegion(regionId: string, hoverImage: HoverImageConfig | null): MapRegion {
+  function buildFallbackRegion(regionId: string, title: string, hoverImage: HoverImageConfig | null): MapRegion {
     return {
       slug: null,
       regionId,
-      title: toTitleFromId(regionId),
+      title,
       shortDescription: 'Профіль регіону незабаром буде додано.',
       summary: 'Розгорнутий матеріал про цей регіон зʼявиться в наступній ітерації.',
       tags: ['Незабаром'],
@@ -177,6 +173,7 @@ const mapIndex = Object.fromEntries(
     root.__mapAbortController = lifecycle;
 
     const hoverByRegionId = JSON.parse(root.dataset.hoverConfig || '{}') as Record<string, HoverImageConfig>;
+    const titleByRegionId = JSON.parse(root.dataset.regionTitles || '{}') as Record<string, string>;
     const preloadedImages = new Map<string, HTMLImageElement>();
     const imageLoadPromises = new Map<string, Promise<void>>();
     let hideIntentTimer: number | null = null;
@@ -453,7 +450,8 @@ const mapIndex = Object.fromEntries(
 
     for (const visualPath of visualPaths) {
       const regionId = visualPath.id;
-      const region = map[regionId] ?? buildFallbackRegion(regionId, hoverByRegionId[regionId] ?? null);
+      const region =
+        map[regionId] ?? buildFallbackRegion(regionId, titleByRegionId[regionId] ?? regionId, hoverByRegionId[regionId] ?? null);
       const tooltipText = `${region.title} — ${region.shortDescription}`;
 
       visualPath.classList.add('map-region-visual');
