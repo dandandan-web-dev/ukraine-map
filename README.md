@@ -8,3 +8,7 @@ Content-first, SEO-ready Astro multi-page site about the historical-cultural reg
 - Tailwind CSS
 - Static generation
 - JSON-based region content
+
+## Web access
+
+Github pages
